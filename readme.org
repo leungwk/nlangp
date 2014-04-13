@@ -1,0 +1,1 @@
+Code and notes for assignments in Natural Language Processing by Michael Collins (Coursera, Feb 2013).
