@@ -4,8 +4,9 @@ gene_test_path=data/gene.test
 rm=rm -f
 
 .PHONY: all
-all: a1_p1_all a1_p2_all a1_p3_all
-
+all: all_a1
+all_a1: a1_p1_all a1_p2_all a1_p3_all
+# all_a2
 
 
 data/gene.counts:
