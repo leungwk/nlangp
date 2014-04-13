@@ -5,3 +5,9 @@ data/*
 !data/gene.key
 !data/gene.test
 !data/gene.train
+!data/parse_dev.dat
+!data/parse_dev.key
+!data/parse_test.dat
+!data/parse_train.dat
+!data/parse_train_vert.dat
+!data/tree.example

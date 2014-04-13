@@ -97,3 +97,6 @@ Found 443 GENEs. Expected 642 GENEs; Correct: 229.
 GENE:	 0.516930	0.356698	0.422120
 #+end_example
 7% improvement
+** future
+
+- linear interpolation for q()
