@@ -1,1 +1,7 @@
 *.pyc
+data/*
+## the original files
+!data/gene.dev
+!data/gene.key
+!data/gene.test
+!data/gene.train

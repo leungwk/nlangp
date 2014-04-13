@@ -1,0 +1,87 @@
+; -*- mode: org;-*-
+
+* a1
+
+Create a trigram hidden Markov model to do named entity recognition of gene names in a document about genetics.
+
+** part 1
+
+#+begin_example
+$ make a1_p1_all
+python hmm.py p1 > data/gene_dev.p1.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.p1.out
+Found 2616 GENEs. Expected 642 GENEs; Correct: 418.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.159786	0.651090	0.256599
+python hmm.py p1 --gene-data gene.test > data/gene_test.p1.out
+python hmm.py p1 --emission df_em_wo_rare > data/gene_dev.df_em_wo_rare.p1.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.df_em_wo_rare.p1.out
+Found 2616 GENEs. Expected 642 GENEs; Correct: 418.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.159786	0.651090	0.256599
+python hmm.py p1 --emission df_em_kept_rare > data/gene_dev.df_em_kept_rare.p1.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.df_em_kept_rare.p1.out
+Found 2236 GENEs. Expected 642 GENEs; Correct: 424.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.189624	0.660436	0.294649
+#+end_example
+15% improvement to keep rare words.
+
+** part 2
+
+in =e(word|tag)=, if upon not finding =(tag,word)=, replace word with
+"_RARE_":
+#+BEGIN_EXAMPLE
+python eval_gene_tagger.py data/gene.key data/gene_dev.p2.out
+Found 2718 GENEs. Expected 642 GENEs; Correct: 42.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.015453	0.065421	0.025000
+#+END_EXAMPLE
+the problem is that, if word is under another tag, it is not rare, so
+failure to find (tag,word) should emit 0, rather than replacing the word
+with =_RARE_= and looking for =(tag,'_RARE_')=, which will overpredict
+I-GENE (and not find many either).
+
+In other words, the problem is a conceptual flaw. One only uses =_RARE_=
+if the word is nowhere in the corpus, not just not emitted by this tag,
+because it can be emitted by some other tag.
+
+So in =e(word|tag)=, if upon not finding =(tag,word)=, check if word is
+emitted by another other tag, returning 0 if so, but if not, replace
+word with =_RARE_=:
+#+begin_example
+python eval_gene_tagger.py data/gene.key data/gene_dev.p2.out
+Found 388 GENEs. Expected 642 GENEs; Correct: 203.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.523196	0.316199	0.394175
+#+end_example
+
+*** what ifs
+
+if using df_em_wo_rare, and so setting e() to 0, either because
+(word=_RARE_,tag) will not be found, or the word is under another tag:
+#+BEGIN_EXAMPLE
+python eval_gene_tagger.py data/gene.key data/gene_dev.p2.out
+Found 72 GENEs. Expected 642 GENEs; Correct: 42.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.583333	0.065421	0.117647
+#+END_EXAMPLE
+
+
+
+if using df_em_kept_rare (ie. keeping all rare words)
+#+begin_example
+python eval_gene_tagger.py data/gene.key data/gene_dev.p2.out
+Found 471 GENEs. Expected 642 GENEs; Correct: 253.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.537155	0.394081	0.454627
+#+end_example
+a 15% improvement, similar to the unigram case.  The same performance
+might be kept, with memory requirements mitigated, using a bloom filter.
