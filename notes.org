@@ -85,3 +85,15 @@ GENE:	 0.537155	0.394081	0.454627
 #+end_example
 a 15% improvement, similar to the unigram case.  The same performance
 might be kept, with memory requirements mitigated, using a bloom filter.
+** part 3
+
+#+begin_example
+$ make a1_p3_eval
+python hmm.py p3 > data/gene_dev.p3.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.p3.out
+Found 443 GENEs. Expected 642 GENEs; Correct: 229.
+
+	 precision 	recall 		F1-Score
+GENE:	 0.516930	0.356698	0.422120
+#+end_example
+7% improvement

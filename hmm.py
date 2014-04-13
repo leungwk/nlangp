@@ -9,6 +9,11 @@ import sys
 
 # df_cnt = pd.read_csv('data/gene.counts', header=None, names=['cnt','type','tag','name'], sep=' ') # wrong (irregular dimensions)
 
+NUMERIC='_NUMERIC_'
+ALL_CAPS='_ALL_CAPS_'
+RARE='_RARE_'
+LAST_CAP='_LAST_CAP_'
+
 ## parse it myself
 def load_gene_counts(file_path):
     emissions = []
@@ -37,17 +42,39 @@ def load_gene_counts(file_path):
     return df_em, df_gram
 
 
-def replace_rare(df_em):
+def calc_word_class(word):
+    if not word:
+        return
+
+    ## check numeric first because isupper() yields true for '1E3'
+    for l in word:
+        if l.isdigit():
+            return NUMERIC
+
+    if word.isupper():
+        return ALL_CAPS
+
+    if word[-1].isupper():
+        return LAST_CAP
+
+    return RARE
+
+
+def replace_rare(df_em, part='p2'):
     acc = defaultdict(int)
     for (tag, word), cnt in df_em.itertuples():
-        if cnt < 5:
-            word = '_RARE_'
+        if part in ('p1','p2'):
+            if cnt < 5:
+                word = RARE
+        elif part == 'p3':
+            if cnt < 5:
+                word = calc_word_class(word)
         acc[(tag, word)] += cnt
     df_em_rare = pd.DataFrame([(t,w,c) for (t,w),c in acc.iteritems()], columns=['tag','word','cnt']).set_index(['tag','word'])
     return df_em_rare
 
 
-def emission(word, tag, df_em, dict_gram):
+def emission(word, tag, df_em, dict_gram, part='p2'):
     """e(x|y) = count(y \to x)/count(y). y \to x means tag y emits word x"""
     if tag in ('*', 'STOP'):
         return 0
@@ -78,7 +105,12 @@ def emission(word, tag, df_em, dict_gram):
 
         try:
             ## should always match if using df_em_rare
-            word = '_RARE_'
+            if part in ('p1','p2'):
+                word = RARE
+            elif part == 'p3':
+                word = calc_word_class(word)
+            else:
+                raise ValueError("Unknown part {}".format(part))
             cnt_tag_emit_word = df_em.loc[tag, word]['cnt']
         except KeyError:
             cnt_tag_emit_word = 0
@@ -89,7 +121,7 @@ def tag_star(word, df_em, dict_gram):
     """unigram tagging"""
     best_val, best_tag = -float('inf'), None
     for tag, in dict_gram.keys(): # unigram only
-        val = emission(word, tag, df_em, dict_gram)
+        val = emission(word, tag, df_em, dict_gram, part='p1')
         if val > best_val:
             best_val, best_tag = val, tag
     return best_val, best_tag
@@ -100,7 +132,7 @@ def qparam(ym2, ym1, ym0, df_gram):
     return float(1.*df_gram.loc[[(ym2, ym1, ym0)]].values/df_gram.loc[[(ym2, ym1)]].values)
 
 
-def viterbi(sentence, df_em, df_gram, debug=False):
+def viterbi(sentence, df_em, df_gram, part='p2', debug=False):
     """Tag the sentence given the counted emissions and 1,2, or 3-grams. sentence input is the words x_1,\dots,x_n"""
     n = len(sentence)
     dict_gram = df_gram[df_gram.index.map(lambda r: len(r) == 1)]['cnt'].to_dict()
@@ -120,7 +152,7 @@ def viterbi(sentence, df_em, df_gram, debug=False):
             ## \max_{w \in S_{k-2}}
             max_val, max_arg = -float('inf'), None
             for w in _tags(k-2):
-                em_val = np.log10(emission(word, v, df_em, dict_gram)) # probability the tag v would emit word
+                em_val = np.log10(emission(word, v, df_em, dict_gram, part)) # probability the tag v would emit word
                 q_val = np.log10(qparam(w, u, v, df_gram))
                 dtab_val = dtab[(k-1,w,u)]
                 ## previous most likely sentence so far, then probability of this trigram
@@ -176,16 +208,19 @@ if __name__ == "__main__":
     parser.add_argument('--emission', help='emission table to use (default: df_em_rare)', default='df_em_rare')
     args = parser.parse_args()
 
+    if args.part not in ('p1','p2','p3'):
+        raise ValueError('unknown part specified')
+
     ## init
     gene_counts_fpath = 'data/gene.counts'
 
     # df_gram y_{i-2} y_{i-1} y
     df_em_raw, df_gram = load_gene_counts(gene_counts_fpath)
-    df_em_rare = replace_rare(df_em_raw) # new counts with infrequent words replaced
+    df_em_rare = replace_rare(df_em_raw, part=args.part) # new counts with infrequent words replaced
     df_em_kept_rare = df_em_raw.copy()
-    df_em_kept_rare = df_em_kept_rare.append(df_em_rare[df_em_rare.index.map(lambda r: r[1] in ['_RARE_'])])
+    df_em_kept_rare = df_em_kept_rare.append(df_em_rare[df_em_rare.index.map(lambda r: r[1] in [RARE])])
 
-    df_em_wo_rare = df_em_rare[df_em_rare.index.map(lambda r: r[1] != '_RARE_')]
+    df_em_wo_rare = df_em_rare[df_em_rare.index.map(lambda r: r[1] != RARE)]
 
     dict_gram = df_gram[df_gram.index.map(lambda r: len(r) == 1)]['cnt'].to_dict()
 
@@ -217,22 +252,13 @@ if __name__ == "__main__":
                 sys.stdout.write('{} {}\n'.format(word, tag))
             sys.stdout.write('\n')
 
-    elif args.part == 'p2':
+    elif args.part in ('p2','p3'):
         acc = []
         for sentence in sentences:
-            tags, df_dtab, df_pbtab, df_valtab = viterbi(sentence, df_em, df_gram)
+            tags, df_dtab, df_pbtab, df_valtab = viterbi(sentence, df_em, df_gram, part=args.part, debug=False)
             acc.append((sentence, tags, df_dtab, df_pbtab, df_valtab))
 
         for sentence, tags, _, _, _ in acc:
             for word, tag in zip(sentence, tags):
                 sys.stdout.write('{} {}\n'.format(word, tag))
             sys.stdout.write('\n')
-
-    elif args.part == 'p3':
-        print 'p3'
-    else:
-        print 'quitting: unknown part specified'
-        raise Exception()
-
-
-
