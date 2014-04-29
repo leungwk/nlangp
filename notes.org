@@ -100,3 +100,99 @@ GENE:	 0.516930	0.356698	0.422120
 ** future
 
 - linear interpolation for q()
+* a2
+
+#+begin_quote
+Expected development total F1-Scores are 0.79 for part 2 and 0.83 for part 3.
+(from assignment page)
+#+end_quote
+
+** future
+** qs
+
+why does backtrace() only retrieve one? because it is a dict().
+
+it stores the split point declared "best" (under a given (i,j,X)), so
+starting with (1,n,SBARQ), the split point could be anywhere between
+[1,n]. if it is a brule, split and recurse. within one subtree, find the
+split between [i,s], and so on, until arriving at a leaf, where y2 would
+be undefined, and the word should be yielded.
+
+why would it not yield everything? Because 
+[i,s,y1] or [s+1,j,y2] fixes 
+X in [i,i,X], which is a key, and thus there is only 1 value assigned
+(even if _RARE_)
+
+** runtimes
+** eval
+
+#+begin_example
+q_x_to_w = rule_params( (nterm, word), df_urule, dict_nterm, tipe='urule')
+#+end_example
+#+begin_example
+$ make a2_p2_eval
+python eval_parser.py data/parse_dev.key data/parse_dev.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+      ADJP          13     0.600        0.231        0.333
+      ADVP          20     1.000        0.050        0.095
+        NP        1081     0.637        0.688        0.662
+        PP         326     0.632        0.669        0.650
+       PRT           6     1.000        0.167        0.286
+        QP           2     0.000        0.000        0.000
+         S          45     0.500        0.178        0.262
+      SBAR          15     0.429        0.200        0.273
+     SBARQ         488     0.974        0.998        0.986
+        SQ         488     0.788        0.807        0.798
+        VP         305     0.461        0.289        0.355
+    WHADJP          43     0.812        0.907        0.857
+    WHADVP         125     0.960        0.968        0.964
+      WHNP         372     0.890        0.892        0.891
+      WHPP          10     1.000        0.600        0.750
+
+     total        3339     0.744        0.732        0.738
+#+end_example
+
+
+
+## current
+
+(replace until fixed)
+
+l259
+["SBARQ", ""]
+-->
+["SBARQ", ["WHNP+PRON", "What"], ["SBARQ", ["SQ", ["VERB", "are"], ["SQ", ["NP", ["NP", ["NOUN", "John"], ["NP", ["NOUN", "C."], ["NOUN", "Calhoun"]]], ["NP", ["CONJ", "and"], ["NP", ["NOUN", "Henry"], ["NOUN", "Clay"]]]], ["VP", ["VERB", "known"], ["PP+ADP", "as"]]]], [".", "?"]]]
+: ["SBARQ", [".", "What"], [".", [".", [".", "are"], [".", [".", [".", [".", "John"], [".", [".", "C."], [".", "Calhoun"]]], [".", [".", "and"], [".", [".", "Henry"], [".", "Clay"]]]], [".", [".", "known"], [".", "as"]]]], [".", "?"]]]
+
+l493
+["SBARQ", ""]
+-->
+["SBARQ", ["WHNP", ["DET", "What"], ["NP", ["ADJ", "other"], ["NOUN", "name"]]], ["SBARQ", ["SQ", ["VERB", "were"], ["SQ", ["NP+NP", [".", "``"], ["NP", ["DET", "the"], ["NP", ["ADJ", "Little"], ["NP", ["NOUN", "Rascals"], [".", "<<"]]]]], ["VP", ["VERB", "known"], ["PP+ADP", "as"]]]], [".", "?"]]]
+: ["SBARQ", [".", [".", "What"], [".", [".", "other"], [".", "name"]]], [".", [".", [".", "were"], [".", [".", [".", "``"], [".", [".", "the"], [".", [".", "Little"], [".", [".", "Rascals"], [".", "<<"]]]]], [".", [".", "known"], [".", "as"]]]], [".", "?"]]]
+
+#+begin_example
+python eval_parser.py data/parse_dev.key data/parse_dev.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+         .           0     0.000        0.000        0.000
+      ADJP          13     0.375        0.231        0.286
+      ADVP          20     0.400        0.100        0.160
+        NP        1081     0.691        0.720        0.705
+        PP         326     0.726        0.755        0.740
+       PRT           6     1.000        0.167        0.286
+        QP           2     0.000        0.000        0.000
+         S          45     0.438        0.156        0.230
+      SBAR          15     0.333        0.133        0.190
+     SBARQ         488     0.972        0.998        0.985
+        SQ         488     0.880        0.898        0.888
+        VP         305     0.524        0.325        0.401
+    WHADJP          43     0.796        0.907        0.848
+    WHADVP         125     0.960        0.968        0.964
+      WHNP         372     0.874        0.860        0.867
+      WHPP          10     1.000        0.600        0.750
+
+     total        3339     0.786        0.763        0.774
+#+end_example
+which is bizarre it would perform better than before even though two
+rules were erroneous.
