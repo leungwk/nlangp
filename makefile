@@ -3,13 +3,18 @@ gene_test_path=data/gene.test
 
 rm=rm -f
 
-#### a1
+
 
 .PHONY: all
 all: all_a1
 all_a1: a1_p1_all a1_p2_all a1_p3_all
 # all_a2
+all_a2: data/parse_train.counts.out a2_p2_eval data/parse_test.p2.out
 
+clean: clean_data_a1 clean_data_a2
+	$(rm) *.pyc
+
+#### a1
 
 data/gene.counts:
 	python count_freqs.py data/gene.train > data/gene.counts
@@ -95,10 +100,6 @@ clean_data_a1:
 	$(rm) data/gene_dev.p3.out
 	$(rm) data/gene_test.p3.out
 
-clean: clean_data_a1 clean_data_a2
-	$(rm) *.pyc
-
-
 #### a2
 
 data/cfg.counts:
@@ -111,6 +112,10 @@ data/parse_dev.out: data/cfg.counts
 	python pcfg.py p2 > $@.tmp
 	mv $@.tmp $@
 
+data/parse_test.p2.out: data/cfg.counts
+	python pcfg.py p2 --q-data data/parse_test.dat > $@.tmp
+	mv $@.tmp $@
+
 a2_p2_eval: data/parse_dev.out
 	python eval_parser.py data/parse_dev.key data/parse_dev.out
 
@@ -120,3 +125,4 @@ clean_data_a2:
 	$(rm) data/cfg.counts
 	$(rm) data/parse_train.counts.out
 	$(rm) data/parse_dev.out
+	$(rm) data/parse_test.p2.out
