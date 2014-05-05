@@ -65,10 +65,10 @@ def rule_params(rule, dict_rule, dict_nterm, tipe):
         try:
             cnt_x_to_w = dict_rule.loc[x, w]['cnt']
         except KeyError:
-            ## is the word emitted by some other nonterminal?
+            ## is the word emitted by some other nonterminal (when looking at the )?
             tmp_df = dict_rule[dict_rule.index.map(lambda r: (r[0] != x) and (r[1] == w))]
             if len(tmp_df) >= 1: # yes, it is under some other nonterminal
-                return 0
+                return sys.float_info.epsilon # rather than 0 so to have the LHS show up in the dynamic table
             w = RARE
             try:
                 cnt_x_to_w = dict_rule.loc[x, w]['cnt']
@@ -94,12 +94,6 @@ def cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule, debug=False)
     for i, word in enumerate(sentence): # {1...n}
         i += 1 # idx-1
         for nterm in nterms:
-            # try: # check if X \to x_i \in R
-            #     q_x_to_w = df_urule.loc[nterm, word]
-            # except KeyError:
-            #     q_x_to_w = 0
-            # else:
-            #     q_x_to_w = rule_params( (nterm, word), df_urule, dict_nterm, tipe='urule')
             q_x_to_w = rule_params( (nterm, word), df_urule, dict_nterm, tipe='urule')
             dtab[(i,i,nterm)] = np.log10(q_x_to_w)
             pbtab[(i,i,nterm)] = (nterm, word, None, i, None, i)
@@ -113,11 +107,6 @@ def cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule, debug=False)
                 ## \max_{X \to Y Z \in R, s \in \set{i,\dots,j-1}}
                 ## X is fixed from above
                 max_val, max_arg = neg_inf, (nterm, None, None, i, None, j)
-                # try:
-                #     df_brule_nterm = df_brule.xs(nterm,level='x')
-                # except KeyError:
-                #     pass # because X \to Y Z \not\in R
-                # for (y1, y2), _ in df_brule_nterm.itertuples():
 
                 if nterm not in dict_brule_rhs:
                     pass
@@ -199,26 +188,10 @@ if __name__ == "__main__":
             for line in pile:
                 sentence = line.strip().split(' ') # strip required otherwise sentence length will be -1 on command line, but +0 in ipython
                 df_dtab, df_pbtab, df_valtab = cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule_rare)
-                ## construct tree
-                # tmp_df = df_dtab[
-                #     (df_dtab.index.get_level_values('i') == 1) &
-                #     (df_dtab.index.get_level_values('j') == len(sentence))]
-                # ## setting SBARQ explicitly seems odd
-                # try:
-                #     key = tmp_df['val'].argmax()
-                # except ValueError:
-                #     key = (1, len(sentence), 'SBARQ')
                 key = (1, len(sentence), 'SBARQ')
                 ## needed otherwise "KeyError: 'the label [11] is not in the [columns]'"
                 try:
                     tree = backtrace(df_pbtab.loc[key], df_pbtab)
-                except KeyError as ke:
-                    ## construct a random tree as a placeholder for now (so that the eval script works)
-                    def _f(acc, sentence):
-                        return 
-
-                    tree = ['SBARQ']
-                    for _ in sentence:
-                        tree = ['SBARQ', '']
-                    # raise Exception(ke.message +'\n {}'.format(sentence))
+                except KeyError as ke: # construct a placeholder
+                    tree = ['SBARQ', '']
                 sys.stdout.write(json.dumps(tree) +'\n')
