@@ -81,7 +81,7 @@ def cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule, debug=False)
     """return the most likely tree for all possible trees of this sentence"""
     ## init
     dtab, pbtab, valtab = {}, {}, {}
-    nterms = df_nterm.index
+    nterms = dict_nterm.keys()
     n = len(sentence)
 
     neg_inf = -float('inf')
@@ -138,7 +138,9 @@ def cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule, debug=False)
 
 def backtrace(rule, df_pbtab):
     """unroll the backpointer table"""
+    import re
     nterm, y1, y2, s = rule
+    nterm = re.sub('\\^<[^>]+>','', nterm) # strip out conditioning on the parent, if any
     i, j, _ = rule.name
     if y2 is not None: # brule
         return [nterm,
@@ -159,7 +161,10 @@ if __name__ == "__main__":
         raise ValueError('unknown part specified')
 
     ## init
-    tree_counts_path = 'data/cfg.counts'
+    if args.part == 'p3':
+        tree_counts_path = 'data/cfg.vert.counts'
+    else:
+        tree_counts_path = 'data/cfg.counts'
     df_nterm, df_brule, df_urule = load_tree_counts(tree_counts_path)
     df_urule_rare = replace_rare(df_urule)
 
@@ -167,14 +172,17 @@ if __name__ == "__main__":
     dict_brule = df_brule['cnt'].to_dict()
 
     ## unroll rhs rules in df_brule
-    df_brule_xs = set(df_brule.index.get_level_values('x'))
-    dict_brule_rhs = {}
-    for x in df_brule_xs:
-        tmp_df = df_brule.xs(x,level='x')
-        s = set()
-        for (y1, y2), _ in tmp_df.itertuples():
-            s.add( (y1, y2) )
-        dict_brule_rhs[x] = s
+    def _unroll_brule(df_brule):
+        df_brule_xs = set(df_brule.index.get_level_values('x'))
+        dict_brule_rhs = {}
+        for x in df_brule_xs:
+            tmp_df = df_brule.xs(x,level='x')
+            s = set()
+            for (y1, y2), _ in tmp_df.itertuples():
+                s.add( (y1, y2) )
+            dict_brule_rhs[x] = s
+        return dict_brule_rhs
+    dict_brule_rhs = _unroll_brule(df_brule)
 
     if args.part == 'p1':
         for nterm, cnt in df_nterm.itertuples():
@@ -183,15 +191,14 @@ if __name__ == "__main__":
             sys.stdout.write('{} UNARYRULE {} {}\n'.format(cnt, x, w))
         for (x, y1, y2), cnt in df_brule.itertuples():
             sys.stdout.write('{} BINARYRULE {} {} {}\n'.format(cnt, x, y1, y2))
-    elif args.part == 'p2':
+    elif args.part in ('p2','p3'):
         with open(args.q_data, 'r') as pile:
             for line in pile:
                 sentence = line.strip().split(' ') # strip required otherwise sentence length will be -1 on command line, but +0 in ipython
                 df_dtab, df_pbtab, df_valtab = cky(sentence, dict_nterm, dict_brule, dict_brule_rhs, df_urule_rare)
                 key = (1, len(sentence), 'SBARQ')
-                ## needed otherwise "KeyError: 'the label [11] is not in the [columns]'"
                 try:
                     tree = backtrace(df_pbtab.loc[key], df_pbtab)
                 except KeyError as ke: # construct a placeholder
-                    tree = ['SBARQ', '']
+                    tree = ['SBARQ', ''] # write out something to detect bugs from logs later on
                 sys.stdout.write(json.dumps(tree) +'\n')

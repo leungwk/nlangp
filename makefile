@@ -9,7 +9,7 @@ rm=rm -f
 all: all_a1
 all_a1: a1_p1_all a1_p2_all a1_p3_all
 # all_a2
-all_a2: data/parse_train.counts.out a2_p2_eval data/parse_test.p2.out
+all_a2: data/parse_train.counts.out a2_p2_eval data/parse_test.p2.out a2_p3_eval data/parse_test.p3.out
 
 clean: clean_data_a1 clean_data_a2
 	$(rm) *.pyc
@@ -105,6 +105,9 @@ clean_data_a1:
 data/cfg.counts:
 	python count_cfg_freq.py data/parse_train.dat > $@
 
+data/cfg.vert.counts:
+	python count_cfg_freq.py data/parse_train_vert.dat > $@
+
 data/parse_train.counts.out: data/cfg.counts
 	python pcfg.py p1 > $@
 
@@ -118,6 +121,18 @@ data/parse_test.p2.out: data/cfg.counts
 
 a2_p2_eval: data/parse_dev.out
 	python eval_parser.py data/parse_dev.key data/parse_dev.out
+
+data/parse_dev_vert.out: data/cfg.vert.counts
+	python pcfg.py p3 > $@.tmp
+	mv $@.tmp $@
+
+a2_p3_eval: data/parse_dev_vert.out
+	python eval_parser.py data/parse_dev.key data/parse_dev_vert.out
+
+data/parse_test.p3.out: data/cfg.vert.counts
+	python pcfg.py p3 --q-data data/parse_test.dat > $@.tmp
+	mv $@.tmp $@
+
 
 
 

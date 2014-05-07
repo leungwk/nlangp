@@ -128,7 +128,7 @@ X in [i,i,X], which is a key, and thus there is only 1 value assigned
 
 ** runtimes
 ** eval
-
+*** p2
 current:
 #+begin_example
 $ time make a2_p2_eval
@@ -156,3 +156,33 @@ real	19m45.803s
 user	18m3.408s
 sys	0m8.661s
 #+end_example
+
+*** p3
+
+#+BEGIN_EXAMPLE
+$ time make a2_p3_eval
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+      ADJP          13     0.286        0.154        0.200
+      ADVP          20     0.143        0.050        0.074
+        NP        1081     0.688        0.725        0.706
+        PP         326     0.680        0.684        0.682
+       PRT           6     1.000        0.333        0.500
+        QP           2     0.000        0.000        0.000
+         S          45     0.519        0.311        0.389
+      SBAR          15     0.385        0.333        0.357
+     SBARQ         488     0.976        0.998        0.987
+        SQ         488     0.952        0.969        0.960
+        VP         305     0.537        0.430        0.477
+    WHADJP          43     0.884        0.884        0.884
+    WHADVP         125     0.946        0.976        0.961
+      WHNP         372     0.964        0.925        0.944
+      WHPP          10     1.000        0.500        0.667
+
+     total        3339     0.798        0.788        0.793
+
+real    26m27.723s
+user    25m50.831s
+sys     0m30.574s
+#+END_EXAMPLE
+slightly lower than the course expected value, but higher than non-markovization.
