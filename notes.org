@@ -102,6 +102,8 @@ GENE:	 0.516930	0.356698	0.422120
 - linear interpolation for q()
 * a2
 
+Create a PCFG for syntactic parsing of questions.
+
 #+begin_quote
 Expected development total F1-Scores are 0.79 for part 2 and 0.83 for part 3.
 (from assignment page)
@@ -186,3 +188,8 @@ user    25m50.831s
 sys     0m30.574s
 #+END_EXAMPLE
 slightly lower than the course expected value, but higher than non-markovization.
+* a3
+
+#+begin_quote
+The expected development F-Scores are 0.420, 0.449, and a basic intersection alignment should give 0.485 for the last part.
+#+end_quote

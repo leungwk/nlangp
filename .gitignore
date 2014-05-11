@@ -11,3 +11,10 @@ data/*
 !data/parse_train.dat
 !data/parse_train_vert.dat
 !data/tree.example
+!data/corpus.en
+!data/corpus.es
+!data/dev.en
+!data/dev.es
+!data/dev.key
+!data/test.en
+!data/test.es
