@@ -14,6 +14,8 @@ all_a2: data/parse_train.counts.out a2_p2_eval data/parse_test.p2.out a2_p3_eval
 clean: clean_data_a1 clean_data_a2
 	$(rm) *.pyc
 
+# TODO: include cache clean
+
 #### a1
 
 data/gene.counts:
@@ -141,3 +143,18 @@ clean_data_a2:
 	$(rm) data/parse_train.counts.out
 	$(rm) data/parse_dev.out
 	$(rm) data/parse_test.p2.out
+
+
+
+#### a3
+
+data/corpus_dev.p1.out:
+	python ibm.py p1 --en-data data/dev.en --es-data data/dev.es > $@.tmp
+	mv $@.tmp $@
+
+a3_p1_eval: data/corpus_dev.p1.out
+	python eval_alignment.py data/dev.key data/corpus_dev.p1.out
+
+data/corpus_test.p1.out:
+	python ibm.py p1 --en-data data/test.en --es-data data/test.es > $@.tmp
+	mv $@.tmp $@

@@ -190,6 +190,20 @@ sys     0m30.574s
 slightly lower than the course expected value, but higher than non-markovization.
 * a3
 
+Train two IBM models to predict English/Spanish word alignments.
+
 #+begin_quote
 The expected development F-Scores are 0.420, 0.449, and a basic intersection alignment should give 0.485 for the last part.
 #+end_quote
+
+** eval
+*** p1
+
+#+begin_example
+python ibm.py p1 > data/corpus_dev.p1.out.tmp
+mv data/corpus_dev.p1.out.tmp data/corpus_dev.p1.out
+python eval_alignment.py data/dev.key data/corpus_dev.p1.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+     total        5920     0.443        0.457        0.450
+#+end_example
