@@ -197,7 +197,7 @@ The expected development F-Scores are 0.420, 0.449, and a basic intersection ali
 #+end_quote
 
 ** eval
-*** a1
+*** p1
 
 #+begin_example
 python ibm.py p1 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p1.out.tmp
@@ -208,7 +208,7 @@ python eval_alignment.py data/dev.key data/corpus_dev.p1.out
      total        5920     0.442        0.457        0.449
 #+end_example
 
-*** a2
+*** p2
 
 #+begin_example
 python ibm.py p2 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p2.out.tmp
@@ -219,3 +219,14 @@ python eval_alignment.py data/dev.key data/corpus_dev.p2.out
      total        5920     0.469        0.484        0.476
 #+end_example
 
+
+*** p3
+
+#+BEGIN_EXAMPLE
+python ibm.py p3 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p3.out.tmp
+mv data/corpus_dev.p3.out.tmp data/corpus_dev.p3.out
+python eval_alignment.py data/dev.key data/corpus_dev.p3.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+     total        5920     0.415        0.554        0.475
+#+END_EXAMPLE

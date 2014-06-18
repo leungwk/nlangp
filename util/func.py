@@ -11,7 +11,7 @@ def persist_to_file(file_name):
 
         @functools.wraps(func)
         def ret_f(*args, **kwargs):
-            key = str(args) + str(kwargs)
+            key = str(args) + str(kwargs) # TODO: kwargs might not have same order
             if key not in cache:
                 cache[key] = func(*args, **kwargs)
                 pickle.dump(cache, open(file_name, 'w'))

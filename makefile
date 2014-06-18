@@ -159,6 +159,8 @@ data/corpus_test.p1.out:
 	python ibm.py p1 --en-data data/test.en --es-data data/test.es > $@.tmp
 	mv $@.tmp $@
 
+
+
 data/corpus_dev.p2.out:
 	python ibm.py p2 --en-data data/dev.en --es-data data/dev.es > $@.tmp
 	mv $@.tmp $@
@@ -169,3 +171,12 @@ a3_p2_eval: data/corpus_dev.p2.out
 data/corpus_test.p2.out:
 	python ibm.py p2 --en-data data/test.en --es-data data/test.es > $@.tmp
 	mv $@.tmp $@
+
+
+
+data/corpus_dev.p3.out:
+	python ibm.py p3 --en-data data/dev.en --es-data data/dev.es > $@.tmp
+	mv $@.tmp $@
+
+a3_p3_eval: data/corpus_dev.p3.out
+	python eval_alignment.py data/dev.key data/corpus_dev.p3.out
