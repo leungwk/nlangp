@@ -230,3 +230,35 @@ python eval_alignment.py data/dev.key data/corpus_dev.p3.out
 ===============================================================
      total        5920     0.415        0.554        0.475
 #+END_EXAMPLE
+
+intersection only
+#+BEGIN_EXAMPLE
+python ibm.py p3 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p3.out.tmp
+mv data/corpus_dev.p3.out.tmp data/corpus_dev.p3.out
+python eval_alignment.py data/dev.key data/corpus_dev.p3.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+     total        5920     0.759        0.389        0.514
+#+END_EXAMPLE
+
+intersection only plus only unaligned points (in the intersection)
+: if a_tmp_mtx[i,j] == 1 and not all_aligned(i,j,a_tmp_mtx):
+#+BEGIN_EXAMPLE
+python ibm.py p3 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p3.out.tmp
+mv data/corpus_dev.p3.out.tmp data/corpus_dev.p3.out
+python eval_alignment.py data/dev.key data/corpus_dev.p3.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+     total        5920     0.408        0.554        0.470
+#+END_EXAMPLE
+
+ditto, but
+: if a_tmp_mtx[i,j] == 1 and not any_aligned(i,j,a_tmp_mtx):
+#+BEGIN_EXAMPLE
+python ibm.py p3 --en-data data/dev.en --es-data data/dev.es > data/corpus_dev.p3.out.tmp
+mv data/corpus_dev.p3.out.tmp data/corpus_dev.p3.out
+python eval_alignment.py data/dev.key data/corpus_dev.p3.out
+      Type       Total   Precision      Recall     F1-Score
+===============================================================
+     total        5920     0.620        0.463        0.530
+#+END_EXAMPLE

@@ -250,22 +250,10 @@ if __name__ == "__main__":
             a_tmp_mtx >= 1
 
             ### grow alignments
-            ## start by considering only neighbours
-            for (i,j), val in np.ndenumerate(a_tmp_mtx):
-                # if val < 1:
-                if not (val == 2):
-                    continue
-                ## check for any alignment
-                for di, dj in neighbours(i,j,a_tmp_mtx):
-                    ## find words with no alignment
-                    if not any_aligned(di,dj,a_tmp_mtx):
-                    # if not all_aligned(di,dj,a_tmp_mtx):
-                        if a_tmp_mtx[di,dj] == 1: # in union
-                            a_tmp_mtx[di,dj] = 3 # not 2, to distinguish it as grown
 
             ## consider other unaligned points
             for (i,j), val in np.ndenumerate(a_tmp_mtx):
-                if a_tmp_mtx[i,j] == 1 and not all_aligned(i,j,a_tmp_mtx):
+                if a_tmp_mtx[i,j] == 1 and not any_aligned(i,j,a_tmp_mtx):
                     a_tmp_mtx[i,j] = 4
 
             ## now write out the alignments

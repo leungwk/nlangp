@@ -180,3 +180,7 @@ data/corpus_dev.p3.out:
 
 a3_p3_eval: data/corpus_dev.p3.out
 	python eval_alignment.py data/dev.key data/corpus_dev.p3.out
+
+data/corpus_test.p3.out:
+	python ibm.py p3 --en-data data/test.en --es-data data/test.es > $@.tmp
+	mv $@.tmp $@
