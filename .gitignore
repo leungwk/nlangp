@@ -18,3 +18,4 @@ data/*
 !data/dev.key
 !data/test.en
 !data/test.es
+!data/tag.model
