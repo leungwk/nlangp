@@ -262,3 +262,52 @@ python eval_alignment.py data/dev.key data/corpus_dev.p3.out
 ===============================================================
      total        5920     0.620        0.463        0.530
 #+END_EXAMPLE
+
+* a4
+
+Train a global-linear model with several tag and word features to recognize gene names.
+
+** p1
+
+there are two (hashed) features.
+
+what is the expected performance for p1? currently it is only slightly
+better than a1.p1
+#+BEGIN_EXAMPLE
+python glm.py p1 > data/gene_dev.a4.p1.out.tmp
+mv data/gene_dev.a4.p1.out.tmp data/gene_dev.a4.p1.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p1.out
+Found 1337 GENEs. Expected 642 GENEs; Correct: 280.
+
+         precision      recall          F1-Score
+GENE:    0.209424       0.436137        0.282971
+#+END_EXAMPLE
+
+** p2
+
+with perceptron training (T=5) and suffix features upto 3
+#+BEGIN_EXAMPLE
+$ make a4_p2_eval
+python glm.py p2b --gene-data data/gene.dev --model data/suffix_tagger.model > data/gene_dev.a4.p2.out.tmp
+mv data/gene_dev.a4.p2.out.tmp data/gene_dev.a4.p2.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p2.out
+Found 916 GENEs. Expected 642 GENEs; Correct: 412.
+
+         precision      recall          F1-Score
+GENE:    0.449782       0.641745        0.528883
+#+END_EXAMPLE
+
+ditto but T=6
+#+BEGIN_EXAMPLE
+$ make a4_p2_eval
+python glm.py p2a --gene-data data/gene.train > data/suffix_tagger.model.tmp
+mv data/suffix_tagger.model.tmp data/suffix_tagger.model
+python glm.py p2b --gene-data data/gene.dev --model data/suffix_tagger.model > data/gene_dev.a4.p2.out.tmp
+mv data/gene_dev.a4.p2.out.tmp data/gene_dev.a4.p2.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p2.out
+Found 640 GENEs. Expected 642 GENEs; Correct: 350.
+
+         precision      recall          F1-Score
+GENE:    0.546875       0.545171        0.546022
+#+END_EXAMPLE
+
