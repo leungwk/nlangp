@@ -184,3 +184,34 @@ a3_p3_eval: data/corpus_dev.p3.out
 data/corpus_test.p3.out:
 	python ibm.py p3 --en-data data/test.en --es-data data/test.es > $@.tmp
 	mv $@.tmp $@
+
+
+#### a4
+
+data/gene_dev.a4.p1.out: data/gene.counts
+	python glm.py p1 > $@.tmp
+	mv $@.tmp $@
+
+a4_p1_eval: data/gene_dev.a4.p1.out
+	python eval_gene_tagger.py data/gene.key $^
+
+data/gene_test.a4.p1.out: data/gene.counts
+	python glm.py p1 --gene-data data/gene.test > $@.tmp
+	mv $@.tmp $@
+
+
+
+data/suffix_tagger.model:
+	python glm.py p2a --gene-data data/gene.train > $@.tmp
+	mv $@.tmp $@
+
+data/gene_dev.a4.p2.out: data/suffix_tagger.model
+	python glm.py p2b --gene-data data/gene.dev --model $^ > $@.tmp
+	mv $@.tmp $@
+
+a4_p2_eval: data/gene_dev.a4.p2.out
+	python eval_gene_tagger.py data/gene.key $^
+
+data/gene_test.a4.p2.out: data/suffix_tagger.model
+	python glm.py p2b --gene-data data/gene.test --model $ > $@.tmp
+	mv $@.tmp $@
