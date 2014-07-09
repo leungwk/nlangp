@@ -311,3 +311,56 @@ Found 640 GENEs. Expected 642 GENEs; Correct: 350.
 GENE:    0.546875       0.545171        0.546022
 #+END_EXAMPLE
 
+** p3
+
+has =_gene_punc_keys= features
+#+BEGIN_EXAMPLE
+$ make a4_p2_eval
+python glm.py p2a --gene-data data/gene.train > data/suffix_tagger.model.tmp
+mv data/suffix_tagger.model.tmp data/suffix_tagger.model
+python glm.py p2b --gene-data data/gene.dev --model data/suffix_tagger.model > data/gene_dev.a4.p2.out.tmp
+mv data/gene_dev.a4.p2.out.tmp data/gene_dev.a4.p2.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p2.out
+Found 710 GENEs. Expected 642 GENEs; Correct: 376.
+
+         precision      recall          F1-Score
+GENE:    0.529577       0.585670        0.556213
+#+END_EXAMPLE
+Even though F1 is better, I was expecting fewer I-GENEs.
+
+changed punc keys to use last three tags, rather than two, and to use
+any possible tag in the hash, and used characters =-/()'.= (added ['.])
+#+BEGIN_EXAMPLE
+$ time make a4_p2_eval
+python glm.py p2a --gene-data data/gene.train > data/suffix_tagger.model.tmp
+mv data/suffix_tagger.model.tmp data/suffix_tagger.model
+python glm.py p2b --gene-data data/gene.dev --model data/suffix_tagger.model > data/gene_dev.a4.p2.out.tmp
+mv data/gene_dev.a4.p2.out.tmp data/gene_dev.a4.p2.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p2.out
+Found 571 GENEs. Expected 642 GENEs; Correct: 366.
+
+         precision      recall          F1-Score
+GENE:    0.640981       0.570093        0.603462
+
+real    5m58.915s
+user    5m55.661s
+sys     0m1.676s
+#+END_EXAMPLE
+
+ditto, but adding in word len and tag feature
+#+BEGIN_EXAMPLE
+$ time make a4_p2_eval
+python glm.py p2a --gene-data data/gene.train > data/suffix_tagger.model.tmp
+mv data/suffix_tagger.model.tmp data/suffix_tagger.model
+python glm.py p2b --gene-data data/gene.dev --model data/suffix_tagger.model > data/gene_dev.a4.p2.out.tmp
+mv data/gene_dev.a4.p2.out.tmp data/gene_dev.a4.p2.out
+python eval_gene_tagger.py data/gene.key data/gene_dev.a4.p2.out
+Found 814 GENEs. Expected 642 GENEs; Correct: 400.
+
+         precision      recall          F1-Score
+GENE:    0.491400       0.623053        0.549451
+
+real    6m25.500s
+user    6m22.801s
+sys     0m1.783s
+#+END_EXAMPLE

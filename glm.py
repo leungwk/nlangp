@@ -54,15 +54,26 @@ def _suff_keys(word, tag):
         suff_keys.append( 'SUFF:{}:{}:{}'.format(suff,idx,tag))
     return suff_keys
 
+def _gene_punc_keys(word, w,u,v):
+    if word in '-/()\'.':
+        return 'GENE_PUNC:{}:{}:{}:{}'.format(word,w,u,v)
+
+def _len_tag_key(word, tag): # v
+    return 'LEN_TAG:{}:{}'.format(len(word), tag)
+
+
 
 def _vf(w,u,v,word, dict_tag_model):
     tri_key = _trigram_key(w,u,v)
     tag_key = _tag_key(word, v)
     suff_keys = _suff_keys(word, v)
+    gene_punc_keys = _gene_punc_keys(word, w,u,v)
+    # len_tag_keys = _len_tag_key(word, v)
 
     ## dot product on weights and if it exists
     suff_val = sum([dict_tag_model.get(sk, 0) for sk in suff_keys])
-    vg_val = dict_tag_model.get(tri_key, 0) +dict_tag_model.get(tag_key, 0) +suff_val
+    vg_val = dict_tag_model.get(tri_key, 0) +dict_tag_model.get(tag_key, 0) +suff_val +dict_tag_model.get(gene_punc_keys, 0)
+    # +dict_tag_model.get(len_tag_keys, 0)
     return vg_val
 
 
@@ -122,11 +133,15 @@ def perceptron(sentences, tag_lines, n_iter, dict_gram):
             ## suffixes
             for sk in _suff_keys(word, tag):
                 tmp_features[sk] += 1
+            ## len and tag
+            # tmp_features[_len_tag_key(word, tag)] += 1
 
-        ## trigrams
         tmp_ts = ['*','*'] +tags +['STOP']
-        for w,u,v in zip(tmp_ts,tmp_ts[1:],tmp_ts[2:]):
+        for word, w,u,v in zip(sentence, tmp_ts,tmp_ts[1:],tmp_ts[2:]):
+            ## trigrams
             tmp_features[_trigram_key(w,u,v)] += 1
+            ## gene punc
+            tmp_features[_gene_punc_keys(word, w,u,v)] += 1
         
         return dict(tmp_features)
 
